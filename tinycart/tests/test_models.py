@@ -52,6 +52,16 @@ class CartModelTests(TestCase):
         self.assertNotIn('cart', self.request.session)
         self.assertEqual(Cart.objects.get_for_request(self.request), cart)
 
+    def test_cart_for_just_logged_in_user(self):
+        cart = Cart.objects.get_for_request(self.request)
+        self.assertIsNone(cart.user)
+        self.assertIn('cart', self.request.session)
+        self.request.user = User.objects.create_user('john', 'john@examle.com')
+        login_cart = Cart.objects.get_for_request(self.request)
+        self.assertEqual(login_cart.pk, cart.pk)
+        self.assertNotIn('cart', self.request.session)
+        self.assertEqual(login_cart.user, self.request.user)
+
     def test_reset_cached_items(self):
         cart = Cart.objects.get_for_request(self.request)
         self.assertEqual(len(cart.cached_items), 0)
